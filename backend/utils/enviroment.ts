@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { ExceptionEnum } from "./enums";
 
-export class Enviroment {
+export default class Enviroment {
     private static instance: Enviroment;
 
     private constructor() {

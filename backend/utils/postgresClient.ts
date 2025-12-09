@@ -1,6 +1,8 @@
 import { Pool } from 'pg';
+import Enviroment from './enviroment';
+import { EnviromentsVariablesEnum as Configuration } from './enums';
 
-export class PostgresClient {
+export default class PostgresClient {
     private static instance: PostgresClient;
 
     public static getInstance(): PostgresClient {
@@ -13,11 +15,16 @@ export class PostgresClient {
     private pool: Pool;
 
     private constructor() {
+        const e = Enviroment.getInstance();
         this.pool = new Pool({
-            connectionString: process.env.DATABASE_URL,
+            user: e.get(Configuration.DB_USER),
+            password: e.get(Configuration.DB_PASSWORD),
+            port: Number(e.get(Configuration.DB_PORT)),
+            database: e.get(Configuration.DB_DATABSE),
+            host: e.get(Configuration.DB_HOST)
         });
     }
-    public async query<T, Q>(sql: string, data: Array<Q>): Promise<Array<T>> { 
+    public async query<T, Q>(sql: string, data: Array<Q>): Promise<Array<T>> {
         const client = await this.pool.connect();
         try {
             const res = await client.query(sql, data);
