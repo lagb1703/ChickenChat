@@ -1,4 +1,6 @@
 import { createTransport } from 'nodemailer';
+import Enviroment from './enviroment';
+import { EnviromentsVariablesEnum as Configuration } from './enums';
 
 export interface EmailMessage {
     from: string;
@@ -21,13 +23,14 @@ export default class EmailClient {
     private transporter;
 
     private constructor() {
+        const e = Enviroment.getInstance();
         this.transporter = createTransport({
-            host: 'smtp.example.com',
-            port: 587,
-            secure: false,
+            host: e.get(Configuration.SMTP_HOST),
+            port: Number(e.get(Configuration.SMTP_PORT)),
+            secure: e.get(Configuration.SMTP_SECURE) === 'true',
             auth: {
-                user: '',
-                pass: ''
+                user: e.get(Configuration.SMTP_USER),
+                pass: e.get(Configuration.SMTP_PASSWORD)
             }
         });
     }

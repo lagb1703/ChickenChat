@@ -3,5 +3,10 @@ export enum EnviromentsVariablesEnum {
     DB_PASSWORD = "DB_PASSWORD",
     DB_PORT = "DB_PORT",
     DB_DATABSE = "DB_DATABSE",
-    DB_HOST = "DB_HOST"
+    DB_HOST = "DB_HOST",
+    SMTP_HOST = "SMTP_HOST",
+    SMTP_PORT = "SMTP_PORT",
+    SMTP_SECURE = "SMTP_SECURE",
+    SMTP_USER = "SMTP_USER",
+    SMTP_PASSWORD = "SMTP_PASSWORD"
 }
