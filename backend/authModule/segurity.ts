@@ -3,7 +3,7 @@ import { User, UserToken } from "../userModule/interfaces/user";
 import {EnviromentsVariablesEnum as Configuration} from "../utils/enums";
 import Enviroment from "../utils/enviroment";
 
-export class Security {
+export default class Security {
     private static instance: Security;
 
     public static getInstance(): Security {
@@ -27,7 +27,7 @@ export class Security {
         }
     }
 
-    public async getToken(user: User): Promise<string> {
+    public async getToken(user: UserToken): Promise<string> {
         return this.jwt.encode(user);
     }
 

@@ -3,7 +3,7 @@ export class HttpException extends Error {
 	detail: unknown;
 	headers?: Record<string, string>;
 
-	constructor(status = 500, detail: unknown = 'Internal Server Error', headers?: Record<string, string>) {
+	constructor(detail: unknown = 'Internal Server Error', status = 500, headers?: Record<string, string>) {
 		super(typeof detail === 'string' ? detail : JSON.stringify(detail));
 		this.status = status;
 		this.detail = detail;
