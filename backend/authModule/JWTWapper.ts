@@ -27,7 +27,7 @@ export default class JWTWrapper {
         return verify(token, key || this.key) as T;
     }
 
-    public async refreshToken(token: string | Buffer): Promise<string> {
+    public async refreshToken(token: string): Promise<string> {
         const decoded = await this.decode<Record<string, any>>(token.toString());
         delete decoded.exp;
         return this.encode(decoded);

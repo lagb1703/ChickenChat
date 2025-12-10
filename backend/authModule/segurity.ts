@@ -1,0 +1,41 @@
+import JWTWrapper from "./JWTWapper";
+import { User, UserToken } from "../userModule/interfaces/user";
+import {EnviromentsVariablesEnum as Configuration} from "../utils/enums";
+import Enviroment from "../utils/enviroment";
+
+export class Security {
+    private static instance: Security;
+
+    public static getInstance(): Security {
+        if (!Security.instance) {
+            Security.instance = new Security();
+        }
+        return Security.instance;
+    }
+    private jwt: JWTWrapper;
+    private loginUrl: string;
+    private constructor() {
+        this.jwt = new JWTWrapper();
+        this.loginUrl = Enviroment.getInstance().get(Configuration.LOGIN_URL);
+    }
+    public async validateToken(token: string): Promise<boolean> {
+        try{
+            await this.jwt.decode<any>(token);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    public async getToken(user: User): Promise<string> {
+        return this.jwt.encode(user);
+    }
+
+    public async setUser(token: string): Promise<UserToken> {
+        return this.jwt.decode<UserToken>(token);
+    }
+
+    public async refreshToken(token: string): Promise<string> {
+        return this.jwt.refreshToken(token);
+    }
+}
