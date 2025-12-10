@@ -29,6 +29,21 @@ export default class UserService {
             throw err;
         }
     }
-    public async register(user: User): Promise<boolean> { }
-    public async getUserById(id: number): Promise<User> { }
+    public async register(user: User): Promise<boolean> {
+        try{
+            await this.postgress.save<{p_id: number}, User>(SqlEnum.register, user);
+            return true;
+        } catch (err) {
+            console.error('Error in processing:\n', err);
+            throw err;
+        }
+    }
+    public async getUserById(id: number): Promise<User> {
+        try{
+            return (await this.postgress.query<User, number>(SqlEnum.getUserById, [id]))[0];
+        } catch (err) {
+            console.error('Error in processing:\n', err);
+            throw err;
+        }
+    }
 }
