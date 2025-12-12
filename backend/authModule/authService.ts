@@ -2,7 +2,6 @@ import UserService from "../userModule/userService";
 import Security from "./segurity";
 import HttpException from "../utils/error";
 import { ExceptionsEnum } from "./enums";
-import { NextRequest } from "next/server";
 
 export default class AuthService {
     private static instance: AuthService;
@@ -34,7 +33,7 @@ export default class AuthService {
         return this.security.refreshToken(token);
     }
 
-    public async setUser(request: NextRequest): Promise<void> {
+    public async setUser(request: Request): Promise<void> {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader) {
             throw new HttpException(ExceptionsEnum.MISSING_TOKEN, 401);
@@ -48,7 +47,7 @@ export default class AuthService {
         (request as any).user = userToken;
     }
 
-    public async setAdminUser(request: NextRequest): Promise<void> {
+    public async setAdminUser(request: Request): Promise<void> {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader) {
             throw new HttpException(ExceptionsEnum.MISSING_TOKEN, 401);
