@@ -1,8 +1,8 @@
 import AuthService from "../authService";
 import { withErrorHandling } from "@/backend/utils/error";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 const authService = AuthService.getInstance();
-export function jwt<T extends (req: Request | NextRequest) => Promise<Response> | Response>(
+export function jwt<T extends (req: Request | NextRequest) => Promise<Response> | Response | Promise<NextResponse> | NextResponse>(
     handler: T,
 ) {
     return async function (request: Request) {

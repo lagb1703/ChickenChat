@@ -2,14 +2,14 @@ import * as mg from "mongodb";
 import Enviroment from "./enviroment";
 import { EnviromentsVariablesEnum as Configuration } from './enums';
 
-export default class MogoClient {
-    private static instance: MogoClient;
+export default class MongoClient {
+    private static instance: MongoClient;
 
-    public static getInstance(): MogoClient {
-        if (!MogoClient.instance) {
-            MogoClient.instance = new MogoClient();
+    public static getInstance(): MongoClient {
+        if (!MongoClient.instance) {
+            MongoClient.instance = new MongoClient();
         }
-        return MogoClient.instance;
+        return MongoClient.instance;
     }
 
     private readonly mongodb: mg.MongoClient;
@@ -23,15 +23,15 @@ export default class MogoClient {
         this.mongodb.connect();
         this.database = e.get(Configuration.MONGO_DATABASE);
     }
-    async aggregate(
+    async aggregate<T>(
         collection: string,
         pipeline: mg.BSON.Document[],
         options?: mg.AggregateOptions & mg.Abortable
-    ): Promise<mg.BSON.Document[]> {
+    ): Promise<T[]> {
         try {
             const db = this.mongodb.db(this.database);
             const cn = db.collection(collection);
-            return await cn.aggregate(pipeline, options).toArray();
+            return await cn.aggregate(pipeline, options).toArray() as T[];
         } catch (err) {
             console.error('Error in processing:\n', err);
             throw err;
