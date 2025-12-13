@@ -38,9 +38,9 @@ export default class UserService {
             throw err;
         }
     }
-    public async getUserById(id: number): Promise<User> {
+    public async getUserById(id: number | string): Promise<User> {
         try{
-            return (await this.postgress.query<User, number>(SqlEnum.getUserById, [id]))[0];
+            return (await this.postgress.query<User, number | string>(SqlEnum.getUserById, [id]))[0];
         } catch (err) {
             console.error('Error in processing:\n', err);
             throw err;

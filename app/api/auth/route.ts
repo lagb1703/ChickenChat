@@ -23,11 +23,33 @@ export const GET = jwt(async (_request: Request) => {
     });
 });
 
+/**
+ * @swagger
+ * /api/auth:
+ *   post:
+ *     tags:
+ *       - auth
+ *     description: Returns the hello world
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Hello World!
+ */
 export const POST = withErrorHandling(async (request: Request) => {
     const user = UserLoginSchema.parse(await request.json());
     const { email, password } = user;
     const token = await authService.login(email, password);
-    return new Response(JSON.stringify({ token }), {
+    return new Response(token, {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
     });
