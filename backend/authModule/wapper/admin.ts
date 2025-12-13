@@ -1,7 +1,8 @@
 import AuthService from "../authService";
 import { withErrorHandling } from "@/backend/utils/error";
+import { NextRequest } from "next/server";
 const authService = AuthService.getInstance();
-export function admin<T extends (req: Request) => Promise<Response> | Response>(
+export function admin<T extends (req: Request | NextRequest) => Promise<Response> | Response>(
     handler: T,
 ) {
     return async function (request: Request) {
