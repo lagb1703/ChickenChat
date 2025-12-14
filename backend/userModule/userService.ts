@@ -31,6 +31,7 @@ export default class UserService {
     }
     public async register(user: User): Promise<boolean> {
         try{
+            user.isAdmin = false;
             await this.postgress.save<{p_id: number}, User>(SqlEnum.register, user);
             return true;
         } catch (err) {
