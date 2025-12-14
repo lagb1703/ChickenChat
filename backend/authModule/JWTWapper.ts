@@ -20,6 +20,7 @@ export default class JWTWrapper {
     // Returns the JWT as a string (conventional usage).
     public async encode(payload: Record<string, any>, key?: string, exp?: number): Promise<string> {
         payload["exp"] = Math.floor(Date.now() / 1000) + (exp ? exp : this.exp);
+        console.log('Encoding payload:', payload);
         return sign(payload, key || this.key, this.header);
     }
 

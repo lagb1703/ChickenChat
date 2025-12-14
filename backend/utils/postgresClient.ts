@@ -37,7 +37,7 @@ export default class PostgresClient {
         const client = await this.pool.connect();
         try {
             const stringify = JSON.stringify(data);
-            const res = await client.query(sql, stringify ? [JSON.parse(stringify)] : []);
+            const res = await client.query(sql, stringify ? [JSON.parse(stringify), 0] : []);
             return res.rows[0];
         } finally {
             client.release();

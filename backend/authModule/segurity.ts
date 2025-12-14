@@ -13,10 +13,8 @@ export default class Security {
         return Security.instance;
     }
     private jwt: JWTWrapper;
-    private loginUrl: string;
     private constructor() {
         this.jwt = new JWTWrapper();
-        this.loginUrl = Enviroment.getInstance().get(Configuration.LOGIN_URL);
     }
     public async validateToken(token: string): Promise<boolean> {
         try{

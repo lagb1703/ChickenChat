@@ -6,10 +6,11 @@ const userService = UserService.getInstance();
 
 /**
  * @swagger
- * /api/auth/register:
+ * /api/user/register:
  *   post:
  *     tags:
  *       - user
+ *     summary: Register a new user
  *     description: Register a new user
  *     requestBody:
  *       required: true
