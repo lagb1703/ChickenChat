@@ -12,6 +12,8 @@ const userService = UserService.getInstance();
  *     tags:
  *       - user
  *     summary: obtener usuario por ID
+ *     security:
+ *       - BearerAuth: []
  *     parameters:
  *       - in: query
  *         name: userId

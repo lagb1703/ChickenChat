@@ -2,9 +2,7 @@ export enum SqlEnum {
     login = `
         SELECT
             utuu."userId",
-            utuu."name",
             utuu."email",
-            utuu."password",
             utuu."isAdmin"
         FROM "user".tb_user_users utuu
         WHERE utuu."email" = $1 and 
@@ -14,6 +12,11 @@ export enum SqlEnum {
         call "user".sp_usu_userpkg_agregarusuario($1, $2);
     `,
     getUserById = `
-        
+        SELECT
+            utuu."name",
+            utuu."email",
+            utuu."isAdmin"
+        FROM "user".tb_user_users utuu
+        WHERE utuu."userId" = $1
     `
 }

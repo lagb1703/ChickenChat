@@ -11,6 +11,7 @@ const userService = UserService.getInstance();
  *     tags:
  *       - user
  *     description: Returns the authenticated user's information
+ *     summary: Get authenticated user info
  *     security:
  *       - BearerAuth: []
  *     responses:
