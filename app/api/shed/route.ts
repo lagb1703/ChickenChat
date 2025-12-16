@@ -1,6 +1,7 @@
 import ShedService from "@/backend/shedModule/services/shedService";
 import { ShedSchema } from "@/backend/shedModule/types";
 import { jwt } from "@/backend/authModule/wapper";
+import { UserToken } from "@/backend/userModule/interfaces/user";
 
 const shedService = ShedService.getInstance();
 
@@ -12,7 +13,7 @@ const shedService = ShedService.getInstance();
  *     tags:
  *       - Shed
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: A list of sheds
@@ -38,9 +39,9 @@ const shedService = ShedService.getInstance();
  *                   - chickenNumber
  */
 export const GET = jwt(async (request: Request) => {
-    const user = (request as any).user;
-    const sheds = await shedService.getAllShedByUserId(user.id);
-    return new Response(JSON.stringify(sheds), { status: 200 });
+    const user:UserToken = (request as any).user;
+    const sheds = await shedService.getAllShedByUserId(user.userId);
+    return new Response(JSON.stringify(sheds), { status: 200, headers: { 'Content-Type': 'application/json' } });
 });
 
 /**
@@ -51,7 +52,7 @@ export const GET = jwt(async (request: Request) => {
  *     tags:
  *       - Shed
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -72,9 +73,17 @@ export const GET = jwt(async (request: Request) => {
  *           required:
  *             - name
  *             - chickenNumber
+ *     responses:
+ *       201:
+ *         description: Shed created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: string
  */
 export const POST = jwt(async (request: Request) => {
     const shed = ShedSchema.parse(await request.json());
-    const shedId = await shedService.saveShed(shed);
-    return new Response(JSON.stringify({ shedId }), { status: 201 });
+    const user = (request as any).user;
+    const shedId = await shedService.saveShed(shed, user);
+    return new Response(shedId, { status: 201 });
 });

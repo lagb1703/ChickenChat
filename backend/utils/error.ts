@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 export class HttpException extends Error {
 	status: number;
 	detail: unknown;
@@ -28,13 +30,18 @@ export function formatErrorResponse(err: unknown): Response {
 	return new Response(body, { status: 500, headers: { 'Content-Type': 'application/json' } });
 }
 
-export function withErrorHandling<T extends (req: Request) => Promise<Response> | Response>(
+
+export type Params = { params?: Record<string, string> } | undefined
+
+export type Responses = Promise<Response> | Response | Promise<NextResponse<any>> | NextResponse<any> | Promise<void> | void;
+
+export function withErrorHandling<T extends (...args: any[]) => any, R = Awaited<ReturnType<T>>>(
 	handler: T,
 ) {
-	return async function (request: Request) {
+	return async function (...args: Parameters<T>): Promise<R | Response> {
 		try {
-			const result = await handler(request);
-			return result;
+			const result = await handler(...args);
+			return result as R;
 		} catch (err) {
 			return formatErrorResponse(err);
 		}

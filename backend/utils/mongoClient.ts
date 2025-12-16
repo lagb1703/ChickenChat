@@ -18,7 +18,7 @@ export default class MongoClient {
 
     constructor() {
         const e = Enviroment.getInstance();
-        const URI = `mongodb+srv://${e.get(Configuration.MONGO_USER_NAME)}:${e.get(Configuration.MONGO_PASSWORD)}@${e.get(Configuration.MONGO_HOST)}/?retryWrites=true&w=majority`;
+        const URI = `mongodb+srv://${e.get(Configuration.MONGO_USER_NAME)}:${e.get(Configuration.MONGO_PASSWORD)}@${e.get(Configuration.MONGO_HOST)}`;
         this.mongodb = new mg.MongoClient(URI);
         this.mongodb.connect();
         this.database = e.get(Configuration.MONGO_DATABASE);
@@ -74,7 +74,7 @@ export default class MongoClient {
         options?: mg.InsertOneOptions
     ): Promise<mg.BSON.ObjectId> {
         try {
-            const db: mg.Db = this.mongodb.db()
+            const db: mg.Db = this.mongodb.db(this.database)
             const cn: mg.Collection = db.collection(collection);
             const result = await cn.insertOne(document, options);
             if (!result.acknowledged)
@@ -96,19 +96,17 @@ export default class MongoClient {
      */
     async update<T extends object>(
         collection: string,
-        document: T,
         filters: mg.Filter<mg.BSON.Document>,
+        update: T,
         options?: mg.UpdateOptions
-    ): Promise<mg.BSON.ObjectId> {
+    ): Promise<mg.UpdateResult> {
         try {
-            const db: mg.Db = this.mongodb.db()
+            const db: mg.Db = this.mongodb.db(this.database)
             const cn: mg.Collection = db.collection(collection);
-            const result = await cn.updateMany(filters, document, options)
+            const result = await cn.updateMany(filters, update, options)
             if (!result.acknowledged)
                 throw Error("Algo fallo en la consulta")
-            if (!result.upsertedId)
-                throw Error("No se encontró un upsertedId")
-            return result.upsertedId;
+            return result;
         } catch (err) {
             console.error('Error in processing:\n', err);
             throw err;
@@ -128,7 +126,7 @@ export default class MongoClient {
         options?: mg.DeleteOptions
     ): Promise<any> {
         try {
-            const db: mg.Db = this.mongodb.db()
+            const db: mg.Db = this.mongodb.db(this.database)
             const cn: mg.Collection = db.collection(collection);
             const result = await cn.deleteMany(filters, options)
             if (!result.acknowledged)
