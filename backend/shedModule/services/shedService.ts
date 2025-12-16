@@ -73,7 +73,7 @@ export default class ShedService {
             { $push: { sheds: shedUpdate } });
     }
 
-    public async deleteShed(shedId: string): Promise<void> {
-        await this.mongoClient.delete(Collections.CHATS, { _id: new ObjectId(shedId) });
+    public async deleteShed(shedId: string, userId: string | number): Promise<void> {
+        await this.mongoClient.delete(Collections.CHATS, { _id: new ObjectId(shedId), "userId": userId});
     }
 }

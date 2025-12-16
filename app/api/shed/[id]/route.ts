@@ -21,6 +21,8 @@ type Params = Promise<{ id: string }>
  *       - in: path
  *         name: id
  *         required: true
+ *         schema:
+ *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -35,14 +37,14 @@ type Params = Promise<{ id: string }>
  *                 nullable: true
  *               chickenNumber:
  *                 type: integer
- *           required:
- *             - name
- *             - chickenNumber
+ *             required:
+ *               - name
+ *               - chickenNumber
  *     responses:
- *        204:
- *          description: Shed updated successfully
- *        400:
- *          description: Bad Request
+ *       '204':
+ *         description: Shed updated successfully
+ *       '400':
+ *         description: Bad Request
  */
 export const PATCH = jwt(async (request: NextRequest, props: { params: Params }) => {
     const user = (request as any).user;
@@ -50,5 +52,36 @@ export const PATCH = jwt(async (request: NextRequest, props: { params: Params })
     const id = (await props.params)?.id;
     if (!id) throw new HttpException("Shed id is required", 400);
     await shedService.updateShed(id, shed);
+    return new Response(null, { status: 204 });
+});
+
+/**
+ * @swagger
+ * /api/shed/{id}:
+ *   delete:
+ *     summary: Delete an existing shed for the authenticated user
+ *     tags:
+ *       - Shed
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '204':
+ *         description: Shed deleted successfully
+ *       '400':
+ *         description: Bad Request
+ *       '401':
+ *         description: Unauthorized
+ */
+export const DELETE = jwt(async (request: NextRequest, props: { params: Params }) => {
+    const user = (request as any).user;
+    const id = (await props.params)?.id;
+    if (!id) throw new HttpException("Shed id is required", 400);
+    await shedService.deleteShed(id, user.userId);
     return new Response(null, { status: 204 });
 });
