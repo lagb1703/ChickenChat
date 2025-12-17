@@ -6,7 +6,7 @@ import { EnviromentsVariablesEnum as Configuration } from './enums';
 const e = Enviroment.getInstance();
 
 const model = new ChatOpenAI({
-    model: "gpt-4",
+    model: "gpt-4o",
     temperature: 0.9,
     maxTokens: 8000,
     // timeout: 120,
@@ -15,7 +15,7 @@ const model = new ChatOpenAI({
 const agent = createAgent({
     model,
     tools: [],
-    systemPrompt: "You are a helpful assistant that translates English to French.",
+    systemPrompt: "eres un agente que ayuda a las personas",
 });
 
 export default agent;

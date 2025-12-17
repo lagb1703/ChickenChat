@@ -5,6 +5,7 @@ import { MessageAdapter, MongoMessageAdapter } from "../messageAdapter";
 import MongoClient from "@/backend/utils/mongoClient";
 import { BaseMessage } from "langchain";
 import { Collections } from "@/backend/chatModule/enums";
+import { HumanMessage, AIMessage } from "langchain";
 
 export default class ChatService {
     private messageAdapter: MessageAdapter;
@@ -27,7 +28,7 @@ export default class ChatService {
     }
 
     private async saveMessage(userId: string | number, chatId: string, message: BaseMessage): Promise<string> {
-        const messageId = await this.mongoClient.insert(Collections.messages, {...message, userId});
+        const messageId = await this.mongoClient.insert(Collections.messages, {...message, userId, chatId, createdAt: new Date()});
         return messageId.toString();
     }
 
@@ -37,8 +38,27 @@ export default class ChatService {
 
     async newMessage(chatId: string, frontMessage: FrontMessage, user: UserToken): Promise<ReadableStream<any>> {
         const messages = await this.getMessages(chatId, 0, user);
-        console.log("Messages retrieved:", messages.length);
-        console.log("esperando agente...");
-        return await this.complainCreator.createComplein(messages, frontMessage);
+        let response = "";
+        const self = this;
+        const ws = new WritableStream({
+            write(chunk) {
+                response += new TextDecoder().decode(chunk);
+            },
+            close() { 
+                (async ()=>{
+                    const humanMessage = frontMessage.image
+                        ? new HumanMessage({ content: frontMessage.messageText, additional_kwargs: { image: frontMessage.image.name } })
+                        : new HumanMessage(frontMessage.messageText);
+                    await self.saveMessage(user.userId, chatId, humanMessage);
+                    const aiMessage = new AIMessage(response);
+                    await self.saveMessage(user.userId, chatId, aiMessage);
+                })()
+            },
+            abort(err) { console.error('Abort', err); }
+        });
+        const stream = await this.complainCreator.createComplein(messages, frontMessage);
+        const [streamForReturn, streamForLog] = stream.tee();
+        streamForLog.pipeTo(ws).catch(err => console.error(err));
+        return streamForReturn;
     }
 }

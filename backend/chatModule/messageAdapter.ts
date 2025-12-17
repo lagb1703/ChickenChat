@@ -1,5 +1,6 @@
 import { BaseMessage } from "langchain";
 import MongoClient from "../utils/mongoClient";
+import { Collections } from "./enums";
 export interface MessageAdapter {
     getMessages(userId: string | number, chatId: string, limit?: number, offset?: number): Promise<BaseMessage[]>;
     findMessageByVector(text: string): Promise<BaseMessage | null>;
@@ -13,17 +14,15 @@ export class MongoMessageAdapter implements MessageAdapter {
     }
 
     async getMessages(userId: string | number, chatId: string, limit: number = 50, offset: number = 0): Promise<BaseMessage[]> {
-        const filters = {
-            userId: userId,
-            chatId: chatId
-        };
-        const projections = {
-            sort: { timestamp: -1 },
-            limit: limit,
-            skip: offset
-        };
-        // const documents = await this.client.query('messages', filters, projections);
-        return [];
+        const filters = [
+            {$match: { chatId: chatId, userId: userId } },
+            { $sort: { createdAt: -1 } },
+            { $skip: offset },
+            { $limit: 50 },
+            { $sort: { createdAt: 1 } } 
+        ]
+        const documents = await this.client.aggregate<BaseMessage>(Collections.messages, filters);
+        return documents;
     }
 
     async findMessageByVector(text: string): Promise<BaseMessage | null> {
