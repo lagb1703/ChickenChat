@@ -18,7 +18,7 @@ export class MongoMessageAdapter implements MessageAdapter {
             {$match: { chatId: chatId, userId: userId } },
             { $sort: { createdAt: -1 } },
             { $skip: offset },
-            { $limit: 50 },
+            { $limit: limit },
             { $sort: { createdAt: 1 } } 
         ]
         const documents = await this.client.aggregate<BaseMessage>(Collections.messages, filters);

@@ -33,7 +33,7 @@ export default class ChatService {
     }
 
     async getMessages(chatId: string, offset: number, user: UserToken): Promise<BaseMessage[]>{
-        return this.messageAdapter.getMessages(user.userId, chatId, offset);
+        return this.messageAdapter.getMessages(user.userId, chatId, 2, offset);
     }
 
     async newMessage(chatId: string, frontMessage: FrontMessage, user: UserToken): Promise<ReadableStream<any>> {
@@ -56,7 +56,7 @@ export default class ChatService {
             },
             abort(err) { console.error('Abort', err); }
         });
-        const stream = await this.complainCreator.createComplein(messages, frontMessage);
+        const stream = await this.complainCreator.createComplein(messages, frontMessage, user);
         const [streamForReturn, streamForLog] = stream.tee();
         streamForLog.pipeTo(ws).catch(err => console.error(err));
         return streamForReturn;

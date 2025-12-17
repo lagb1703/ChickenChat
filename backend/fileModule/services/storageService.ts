@@ -35,4 +35,8 @@ export default class StorageService {
 	public async delete(name: string, folder: string): Promise<void> {
 		await this.storage.delete(`${folder}/${name}`);
 	}
+
+	public async getSignedUrl(name: string, folder: string, expiresInSeconds: number = 60 * 60): Promise<string> {
+		return this.storage.getSignedUrl(`${folder}/${name}`, expiresInSeconds);
+	}
 }

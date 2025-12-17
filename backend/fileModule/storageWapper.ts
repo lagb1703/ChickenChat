@@ -30,4 +30,13 @@ export default class StorageWapper {
 		const file = this.bucket.file(name);
 		await file.delete();
 	}
+
+	public async getSignedUrl(name: string, expiresInSeconds: number = 60 * 60): Promise<string> {
+		const file = this.bucket.file(name);
+		const [url] = await file.getSignedUrl({
+			action: "read",
+			expires: Date.now() + expiresInSeconds * 1000,
+		});
+		return url;
+	}
 }

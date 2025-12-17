@@ -5,6 +5,8 @@ import StorageService from "./storageService";
 import { UserToken } from "@/backend/userModule/interfaces/user";
 import Crypto from "crypto";
 import { NextResponse } from "next/server";
+import { Collections } from "../emuns";
+import { ObjectId } from "mongodb";
 
 export default class FileService {
     private static instance: FileService | null = null;
@@ -25,8 +27,10 @@ export default class FileService {
         this.storageService = StorageService.getInstance();
     }
 
-    async getFileInfo(id: string | number, userId: string | number): Promise<FileDb> {
-        const file = await this.mongoClient.aggregate<FileDb>("", [])
+    async getFileInfo(id: string | number, userId?: string | number): Promise<FileDb> {
+        const filters = [{ $match: { _id: new ObjectId(id.toString()) } }];
+        const file = await this.mongoClient.aggregate<FileDb>(Collections.files, filters)
+        console.log(file);
         if (!file) {
             throw new HttpException(`File with id ${id} not found`, 404);
         }
@@ -35,11 +39,11 @@ export default class FileService {
 
     private async saveFileInfo(fileDb: FileDb, user: UserToken): Promise<string> {
         fileDb.userId = user.userId;
-        return (await this.mongoClient.insert("", fileDb)).toString();
+        return (await this.mongoClient.insert(Collections.files, fileDb)).toString();
     }
 
     private async deleteFileInfo(id: string): Promise<void> {
-        await this.mongoClient.delete("", { id });
+        await this.mongoClient.delete(Collections.files, { id });
     }
 
     public async saveFile(file: File, user: UserToken): Promise<string> {
@@ -79,5 +83,10 @@ export default class FileService {
         }
         await this.storageService.delete(fileInfo.name, fileInfo.bucket);
         await this.deleteFileInfo(id);
+    }
+
+    public async getSignedUrl(id: string, expiresInSeconds: number = 60 * 60): Promise<string> {
+        const fileInfo = await this.getFileInfo(id);
+        return this.storageService.getSignedUrl(fileInfo.name, "default", expiresInSeconds);
     }
 }
