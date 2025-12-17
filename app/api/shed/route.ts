@@ -34,9 +34,6 @@ const shedService = ShedService.getInstance();
  *                     nullable: true
  *                   chickenNumber:
  *                     type: integer
- *                 required:
- *                   - name
- *                   - chickenNumber
  */
 export const GET = jwt(async (request: Request) => {
     const user:UserToken = (request as any).user;
