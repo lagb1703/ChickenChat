@@ -93,9 +93,8 @@ export const GET = jwt(async (request: NextRequest, props: { params: Params }) =
  *             properties:
  *               messageText:
  *                 type: string
- *               image:
+ *               fileId:
  *                 type: string
- *                 format: binary
  *             required:
  *               - messageText
  *     responses:
@@ -108,9 +107,8 @@ export const POST = jwt(async (request: NextRequest, props: { params: Params }) 
     if (!id) throw new HttpException("Shed id is required", 400);
     const formData = await request.formData();
     const messageText = formData.get("messageText");
-    const imageFile = formData.get("image") as File | string | null;
-    console.log("Image file received:", imageFile);
-    const frontMessage = FrontMessageSchema.parse({ messageText: messageText, image: (imageFile != "")? imageFile : null });
+    const fileId = formData.get("fileId") as string | null;
+    const frontMessage = FrontMessageSchema.parse({ messageText: messageText, fileId: (fileId != "")? fileId : null });
     const stream = await chatService.newMessage(id, frontMessage, user);
     return new NextResponse(stream, {
       status: 200,

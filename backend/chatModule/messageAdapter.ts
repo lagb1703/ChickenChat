@@ -22,7 +22,12 @@ export class MongoMessageAdapter implements MessageAdapter {
             { $sort: { createdAt: 1 } } 
         ]
         const documents = await this.client.aggregate<BaseMessage>(Collections.messages, filters);
-        return documents;
+        return documents.map(doc => {
+            const additional_kwargs_keys = Object.entries(doc.additional_kwargs);
+            if(additional_kwargs_keys.length > 0)
+                doc.content += `[${additional_kwargs_keys.join(", ")}]`;
+            return doc
+        });
     }
 
     async findMessageByVector(text: string): Promise<BaseMessage | null> {

@@ -33,11 +33,12 @@ export default class ChatService {
     }
 
     async getMessages(chatId: string, offset: number, user: UserToken): Promise<BaseMessage[]>{
-        return this.messageAdapter.getMessages(user.userId, chatId, 2, offset);
+        return this.messageAdapter.getMessages(user.userId, chatId, 5, offset);
     }
 
     async newMessage(chatId: string, frontMessage: FrontMessage, user: UserToken): Promise<ReadableStream<any>> {
         const messages = await this.getMessages(chatId, 0, user);
+        console.log("Messages retrieved:", messages);
         let response = "";
         const self = this;
         const ws = new WritableStream({
@@ -46,8 +47,8 @@ export default class ChatService {
             },
             close() { 
                 (async ()=>{
-                    const humanMessage = frontMessage.image
-                        ? new HumanMessage({ content: frontMessage.messageText, additional_kwargs: { image: frontMessage.image.name } })
+                    const humanMessage = frontMessage.fileId
+                        ? new HumanMessage({ content: frontMessage.messageText, additional_kwargs: { fileId: frontMessage.fileId } })
                         : new HumanMessage(frontMessage.messageText);
                     await self.saveMessage(user.userId, chatId, humanMessage);
                     const aiMessage = new AIMessage(response);

@@ -1,7 +1,6 @@
 import { ReactAgent, BaseMessage, HumanMessage } from "langchain";
 import { FrontMessage } from "./types";
 import agent from "../utils/agent";
-import FileService from "../fileModule/services/fileService";
 import { UserToken } from "../userModule/interfaces/user";
 
 export interface LLmComplein{
@@ -49,24 +48,18 @@ export class OnltTextLlmComplein implements LLmComplein {
 
 export class ImageAndTextLLmComplein implements LLmComplein {
     agent: ReactAgent;
-    private fileService: FileService;
 
     constructor() {
         this.agent = agent;
-        this.fileService = FileService.getInstance();
     }
 
     async getResponse(messages: BaseMessage[], lastMessage: FrontMessage, user?: UserToken): Promise<ReadableStream<string>> {
-        const fileId = await this.fileService.saveFile(lastMessage.image!, user!);
-        console.log(fileId);
-        const messageWithImage = `${lastMessage.messageText}\n[Image: ${fileId}]`;
+        const messageWithImage = `${lastMessage.messageText}\n[FileId: ${lastMessage.fileId}]`;
         const messagesPront = [...messages, new HumanMessage(messageWithImage)];
         const stream = new ReadableStream({
         async start(controller) {
             const encoder = new TextEncoder();
-
             try {
-            // 3. Iterar sobre el stream del agente de LangChain
             for await (const chunk of await agent.stream(
                 { messages: messagesPront },
                 { streamMode: "messages" } 
@@ -92,7 +85,7 @@ export class ImageAndTextLLmComplein implements LLmComplein {
 export class ComplainCreator{
     async createComplein(messages: BaseMessage[], lastMessage: FrontMessage, user?: UserToken): Promise<ReadableStream<string>>{
         let complenin: LLmComplein;
-        if(lastMessage.image){
+        if(lastMessage.fileId){
             complenin = new ImageAndTextLLmComplein();
         } else {
             complenin = new OnltTextLlmComplein();
