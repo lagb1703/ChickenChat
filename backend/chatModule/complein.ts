@@ -5,7 +5,7 @@ import { UserToken } from "../userModule/interfaces/user";
 
 export interface LLmComplein{
     agent: ReactAgent;
-    getResponse(messages: BaseMessage[], lastMessage: FrontMessage, user?:UserToken): Promise<ReadableStream<string>>;
+    getResponse(messages: BaseMessage[], lastMessage: FrontMessage, user?:UserToken, chatId?: string): Promise<ReadableStream<string>>;
 }
 
 export class OnltTextLlmComplein implements LLmComplein {
@@ -15,8 +15,8 @@ export class OnltTextLlmComplein implements LLmComplein {
         this.agent = agent;
     }
 
-    async getResponse(messages: BaseMessage[], lastMessage: FrontMessage): Promise<ReadableStream<string>> {
-        const messagesPront = [...messages, new HumanMessage(lastMessage.messageText)];
+    async getResponse(messages: BaseMessage[], lastMessage: FrontMessage, user?: UserToken, chatId?: string): Promise<ReadableStream<string>> {
+        const messagesPront = [...messages, new HumanMessage(`${lastMessage.messageText}\n[FileId: none, userId: ${user?.userId}, chatId: ${chatId}]`)];
         const stream = new ReadableStream({
         async start(controller) {
             // Usamos TextEncoder para convertir el texto a bytes (Uint8Array)
@@ -53,7 +53,7 @@ export class ImageAndTextLLmComplein implements LLmComplein {
         this.agent = agent;
     }
 
-    async getResponse(messages: BaseMessage[], lastMessage: FrontMessage, user?: UserToken): Promise<ReadableStream<string>> {
+    async getResponse(messages: BaseMessage[], lastMessage: FrontMessage, user?: UserToken, chatId?: string): Promise<ReadableStream<string>> {
         const messageWithImage = `${lastMessage.messageText}\n[FileId: ${lastMessage.fileId}]`;
         const messagesPront = [...messages, new HumanMessage(messageWithImage)];
         const stream = new ReadableStream({
@@ -83,13 +83,13 @@ export class ImageAndTextLLmComplein implements LLmComplein {
 }
 
 export class ComplainCreator{
-    async createComplein(messages: BaseMessage[], lastMessage: FrontMessage, user?: UserToken): Promise<ReadableStream<string>>{
+    async createComplein(messages: BaseMessage[], lastMessage: FrontMessage, user?: UserToken, chatId?: string): Promise<ReadableStream<string>>{
         let complenin: LLmComplein;
         if(lastMessage.fileId){
             complenin = new ImageAndTextLLmComplein();
         } else {
             complenin = new OnltTextLlmComplein();
         }
-        return complenin.getResponse(messages, lastMessage, user);
+        return complenin.getResponse(messages, lastMessage, user, chatId);
     }
 }

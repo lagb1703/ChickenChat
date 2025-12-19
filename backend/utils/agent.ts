@@ -3,15 +3,21 @@ import { ChatOpenAI } from "@langchain/openai";
 import { DynamicTool, Tool } from "@langchain/core/tools";
 import FileService from "../fileModule/services/fileService";
 import OpenAI from "openai";
+import { OpenAIEmbeddings } from "@langchain/openai";
+import ChatService from "../chatModule/service/chatService";
+
+export const embeddings = new OpenAIEmbeddings({
+  model: "text-embedding-3-large",
+});
 
 const openai = new OpenAI();
 
-async function isAValidObjectId(id: string) {
-  const objectIdPattern = /^[a-f\d]{24}$/i;
-  if(objectIdPattern.test(id)){
-    return "El ID de la imagen es un ObjectId válido de MongoDB.";
-  }
-  return "El ID de la imagen no es un ObjectId válido de MongoDB.";
+async function getMessage(input: string) {
+  const chatService = ChatService.getInstance();
+  const messages = await chatService.findByVector(input);
+  return `[Mensajes relevantes encontrados:\n${messages
+    .map((msg, index) => `${index + 1}. ${msg.content}`)
+    .join("\n")}]\n`;
 }
 
 async function getImage(input: string) {
@@ -23,7 +29,7 @@ async function getImage(input: string) {
   const question = input.split(";").slice(1).join(" ");
   const objectIdPattern = /^[a-f\d]{24}$/i;
   if (!objectIdPattern.test(imageId)) {
-    return "El ID de la imagen no es un ObjectId válido de MongoDB, intenta responder con tu respuesta anterior.";
+    return "[El ID de la imagen no es un ObjectId válido de MongoDB.]\n";
   }
   const fileService = FileService.getInstance();
   const url = await fileService.getSignedUrl(imageId, 120);
@@ -54,7 +60,7 @@ async function getImage(input: string) {
     max_tokens: 300,
   });
   console.log("OpenAI response:", response.choices[0].message.content);
-  return response.choices[0].message.content;
+  return `[${response.choices[0].message.content}]\n`;
 }
 
 const model = new ChatOpenAI({
@@ -68,10 +74,27 @@ const agent = createAgent({
   model,
   tools: [
     new DynamicTool({
+      name: "GetMessages",
+      description: `
+          Úsalo para buscar mensajes relevantes en la base de datos según el contenido del mensaje del usuario.
+          También, puedes obtener los id de las imagenes que el usuario ha enviado en el chat.
+          Si vas a buscar una imagen, puedes utilizar FileId y una descripción corta.
+          El input se compone de 3 cosas, separadas por punto y coma (;):
+          1. El texto que necesites recordar.
+          2. (Opcional) El ID del chat para filtrar los mensajes.
+          3. (Opcional) El ID del usuario para filtrar los mensajes.
+          <pregunta>;<chatId>;<userId>
+          Ejemplo de input con chatId y userId: "¿Cuál es el estado de mi pedido?;69423ac2e825d36b16193603;6"
+          recuerda que chatId es un objectId de MongoDB y userId es un numero.
+        `,
+      func: getMessage,
+    }),
+    new DynamicTool({
       name: "GetImage",
-      description:
-        `
+      description: `
           Úsalo para obtener la descripción de una imagen almacenada, este utiliza otro modelo de fondo. 
+          Si no tienes el ID de la imagen, puedes intentar buscar mensajes relevantes con el otro tool.
+          El id de la imagen no puede ser null o none o vacío.
           El input es el ID de la imagen y una posible pregunta que puedas tener, encontraras el id de la imagen de la siguiente manera:
           [FileId: <ID_DE_LA_IMAGEN>]
           Si no tienes ninguna pregunta, solo envía el ID de la imagen.
@@ -79,13 +102,9 @@ const agent = createAgent({
         `,
       func: getImage,
     }),
-    new DynamicTool({
-      name: "isAValidObjectId",
-      description: "Verifica si un ID es un ObjectId válido de MongoDB. El input es el ID a verificar.",
-      func: isAValidObjectId,
-    }),
   ],
-  systemPrompt: "eres un agente que ayuda a las personas, puedes ver imágenes y describirlas brevemente. Recuerda, eres un agente, tienes memoria de parte de la conversación.",
+  systemPrompt:
+    "eres un agente que ayuda a las personas, puedes ver imágenes y describirlas brevemente. Recuerda, eres un agente, tienes memoria de parte de la conversación.",
 });
 
 export default agent;

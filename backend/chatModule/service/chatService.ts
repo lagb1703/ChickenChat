@@ -6,6 +6,7 @@ import MongoClient from "@/backend/utils/mongoClient";
 import { BaseMessage } from "langchain";
 import { Collections } from "@/backend/chatModule/enums";
 import { HumanMessage, AIMessage } from "langchain";
+import { embeddings } from "@/backend/utils/agent";
 
 export default class ChatService {
     private messageAdapter: MessageAdapter;
@@ -28,12 +29,17 @@ export default class ChatService {
     }
 
     private async saveMessage(userId: string | number, chatId: string, message: BaseMessage): Promise<string> {
-        const messageId = await this.mongoClient.insert(Collections.messages, {...message, userId, chatId, createdAt: new Date()});
+        const newMessage: Record<string, any> = message;
+        if (newMessage.embedding === undefined) {
+            const vector = await embeddings.embedQuery(newMessage.content);
+            newMessage.embedding = vector;
+        }
+        const messageId = await this.mongoClient.insert(Collections.messages, {...newMessage, userId, chatId, createdAt: new Date()});
         return messageId.toString();
     }
 
     async getMessages(chatId: string, offset: number, user: UserToken): Promise<BaseMessage[]>{
-        return this.messageAdapter.getMessages(user.userId, chatId, 5, offset);
+        return this.messageAdapter.getMessages(user.userId, chatId, 1, offset);
     }
 
     async newMessage(chatId: string, frontMessage: FrontMessage, user: UserToken): Promise<ReadableStream<any>> {
@@ -57,9 +63,13 @@ export default class ChatService {
             },
             abort(err) { console.error('Abort', err); }
         });
-        const stream = await this.complainCreator.createComplein(messages, frontMessage, user);
+        const stream = await this.complainCreator.createComplein(messages, frontMessage, user, chatId);
         const [streamForReturn, streamForLog] = stream.tee();
         streamForLog.pipeTo(ws).catch(err => console.error(err));
         return streamForReturn;
+    }
+
+    async findByVector(text: string): Promise<BaseMessage[]> {
+        return this.messageAdapter.findMessageByVector(text);
     }
 }
